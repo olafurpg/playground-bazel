@@ -1,5 +1,6 @@
 package example
 
 object Example extends App {
-  println("Hello world!")
+  println(new Greeting().message)
 }
+

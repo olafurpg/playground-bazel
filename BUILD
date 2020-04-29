@@ -1,10 +1,6 @@
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+load("@rules_scala_annex//rules:scalafmt.bzl", "scala_format_test")
 
-buildifier(
-    name = "buildifier",
-)
-
-buildifier(
-    name = "buildifier_check",
-    mode = "check",
+scala_format_test(
+    name = "format",
+    srcs = glob(["**/*.scala"]),
 )

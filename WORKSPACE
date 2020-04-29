@@ -33,6 +33,9 @@ scalafmt_default_config()
 
 load("@rules_scala_annex//rules/scala_proto:workspace.bzl", "scala_proto_register_toolchains", "scala_proto_repositories",)
 scala_proto_repositories()
+
+
+
 load("@annex_proto//:defs.bzl", annex_proto_pinned_maven_install = "pinned_maven_install")
 annex_proto_pinned_maven_install()
 scala_proto_register_toolchains()
@@ -67,4 +70,6 @@ bind(
     name = "default_scala",
     actual = "@rules_scala_annex//src/main/scala:zinc_2_12_10",
 )
+
+
 

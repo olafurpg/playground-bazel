@@ -1,0 +1,111 @@
+#!/bin/bash -e
+
+abs_path() {
+    perl -MCwd -le '
+    for (@ARGV) {
+      if ($p = Cwd::abs_path $_) {
+        print $p;
+      } else {
+        warn "abs_path: $_: $!\n";
+        $ret = 1;
+      }
+    }
+    exit $ret' "$@"
+}
+workspace=$(cd $(dirname "$0")/..; pwd)
+root_workspace=$(cd $(dirname $(abs_path "$0"))/..; pwd)
+
+default_bazel_version='2.2.0'
+
+if [ -z "$BAZEL_VERSION" ]; then
+    bazel_version="$default_bazel_version"
+else
+    bazel_version="$BAZEL_VERSION"
+fi
+
+case "$bazel_version" in
+    'host')
+        bazel_version=$("$BAZEL_REAL" version | awk '/Build label/ {print $3}' | cut -d '-' -f 1)
+        bazel="$BAZEL_REAL"
+        ;;
+    '2.1.0')
+        darwin_sha='0be7e8266523922ab63720775a6e4174468bd617e016e89d726a0f3441c46396'
+        linux_sha='501c5a48bf6e4d836ecfe27f471bfbab029d2bf0cf62e69a0320f0dc576be56a'
+        ;;
+    '2.2.0')
+        darwin_sha='8a0238c126d086f3641efda177fa8fc1e85ba09c2af10c0977f14b202a9e7a5a'
+        linux_sha='6dfcd3b3d7a8811f53a1776c285cf533bc12c33d1eaf49b6105e9699df26ef57'
+        ;;
+    *)
+        echo "The requested Bazel version '$bazel_version' is not supported"
+        exit 1
+        ;;
+esac
+
+if [ -z "$bazel" ]; then
+    bazel_bin_loc=~/.bazel_binaries
+    mkdir -p $bazel_bin_loc
+    bazel=$bazel_bin_loc/$bazel_version/bin/bazel-real
+fi
+
+if ! [ -f "$bazel" ]; then
+    case $(uname -s) in
+        Darwin)
+            platform='darwin'
+            sha=$darwin_sha
+            ;;
+        Linux)
+            platform='linux'
+            sha=$linux_sha
+            ;;
+        *)
+            echo 'Your OS is not supported.'
+            exit 1
+            ;;
+    esac
+    remote_source=https://github.com/bazelbuild/bazel/releases/download
+    installer_name="bazel-$bazel_version-installer-$platform-x86_64.sh"
+    url="$remote_source/$bazel_version/$installer_name"
+    (
+        tmp_dir=$(mktemp -d)
+        trap "rm -rf $tmp_dir" EXIT
+        cd $tmp_dir
+        (>&2 echo "downloading installer from")
+        (>&2 echo "$url")
+        curl -o installer.sh -L $url
+        generated_sha=$(shasum -a 256 installer.sh | awk '{print $1}')
+        if [ "$generated_sha" != "$sha" ]; then
+            echo "Sha 256 does not match, expected: $sha"
+            echo "But found $generated_sha"
+            echo "Recommend you: update the sha to the expected"
+            echo "and then re-run this script"
+            exit 1
+        fi
+        chmod +x installer.sh
+        ./installer.sh --base=$bazel_bin_loc/$bazel_version --bin=$bazel_bin_loc/$bazel_version/bin_t
+    )
+fi
+
+extra_command_args=()
+
+IFS=. read -r major minor patch < <(echo "$bazel_version")
+extra_command_args+=("--config=v$major.$minor")
+
+for (( i=1; i<=$#; i++ ))
+do
+    case "${!i}" in
+        -*)
+            ;;
+        *)
+            n=$(($i + 1))
+            set -- "${@:1:$i}" "${extra_command_args[@]}" "${@:$n}"
+            break
+            ;;
+    esac
+done
+
+disk_cache="$root_workspace"/.bazel_cache
+mkdir -p "$disk_cache"
+
+(>&2 echo :: exec "$bazel" "$@")
+exec "$bazel" "$@"
