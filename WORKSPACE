@@ -1,8 +1,8 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Load rules scala annex
-rules_scala_annex_version = "ae99fcb08bbddfc24fef00d7b13f6c065e1df8d5"
-rules_scala_annex_sha256 = "1630fc7ecc7a4ffeabcdef73c7600eab9cf3fd2377db1f69b8ce1927560211ff"
+rules_scala_annex_version = "bc2c0f78eb4b6cb46f66a8909efeb317ae3aaec0"
+rules_scala_annex_sha256 = "58d34c3e8a7dc0c274b4c489e8b5494f1105c2d0a4bfc67260bfa1e0a2a6931f"
 http_archive(
     name = "rules_scala_annex",
     sha256 = rules_scala_annex_sha256,
@@ -67,3 +67,4 @@ bind(
     name = "default_scala",
     actual = "@rules_scala_annex//src/main/scala:zinc_2_12_10",
 )
+
