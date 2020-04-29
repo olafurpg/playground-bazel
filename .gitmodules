@@ -1,3 +1,6 @@
 [submodule "rules_scala"]
 	path = rules_scala
 	url = https://github.com/higherkindness/rules_scala
+[submodule "vendor/rules_scala"]
+	path = vendor/rules_scala
+	url = git@github.com:olafurpg/rules_scala.git

@@ -1,13 +1,9 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Load rules scala annex
-rules_scala_annex_version = "bc2c0f78eb4b6cb46f66a8909efeb317ae3aaec0"
-rules_scala_annex_sha256 = "58d34c3e8a7dc0c274b4c489e8b5494f1105c2d0a4bfc67260bfa1e0a2a6931f"
-http_archive(
+local_repository(
     name = "rules_scala_annex",
-    sha256 = rules_scala_annex_sha256,
-    strip_prefix = "rules_scala-{}".format(rules_scala_annex_version),
-    url = "https://github.com/higherkindness/rules_scala/archive/{}.zip".format(rules_scala_annex_version),
+    path = "vendor/rules_scala",
 )
 
 rules_jvm_external_tag = "2.9"
